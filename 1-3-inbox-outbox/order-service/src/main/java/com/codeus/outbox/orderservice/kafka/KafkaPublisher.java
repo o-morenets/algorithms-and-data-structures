@@ -1,13 +1,14 @@
 package com.codeus.outbox.orderservice.kafka;
 
-import com.codeus.outbox.orderservice.entity.Order;
 import com.codeus.outbox.orderservice.entity.OutboxEvent;
+import com.codeus.outbox.orderservice.entity.OutboxEventStatus;
 import com.codeus.outbox.orderservice.repository.OutboxEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
@@ -16,21 +17,37 @@ import java.util.concurrent.ThreadLocalRandom;
 public class KafkaPublisher {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final OutboxEventRepository outboxRepository;
 
-    //todo: need to use OutboxEvent
-    public void publish(Order order) {
-        log.info("\n\n➡️ Publishing event to Kafka topic=order-created");
+    public void publish(OutboxEvent event) {
+        KafkaPublisher.log.info("\n\n➡️ Publishing event to Kafka topic=order-created");
 
-        //todo: pass id to handle it on consumer side
-        //todo: pass payload of our event
-        //todo: use .whenComplete to check status of sending kafka event and update event in database
-        kafkaTemplate.send("order-created", order.toString());
+        sendEventToKafka(event);
 
         int random = ThreadLocalRandom.current().nextInt(1, 101); // 1–100
         boolean shouldDuplicate = random <= 70;
         if (shouldDuplicate) {
-            //todo: please make same sending as logic above ^
-            kafkaTemplate.send("order-created", order.toString());
+            log.info("Duplicating event with id={}", event.getId().toString());
+            sendEventToKafka(event);
         }
+    }
+
+    private void sendEventToKafka(OutboxEvent event) {
+        kafkaTemplate.send("order-created", event.getId().toString(), event.getPayload())
+                .whenComplete((result, ex) -> {
+                    if (ex == null) {
+                        event.setStatus(OutboxEventStatus.SENT);
+                        event.setProcessedAt(Instant.now());
+                    } else {
+                        event.setStatus(OutboxEventStatus.FAILED);
+                    }
+
+                    try {
+                        outboxRepository.save(event);
+                    } catch (Exception e) {
+                        log.error("Failed to save event with id={} to database: {}", event.getId(), e.getMessage());
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 }

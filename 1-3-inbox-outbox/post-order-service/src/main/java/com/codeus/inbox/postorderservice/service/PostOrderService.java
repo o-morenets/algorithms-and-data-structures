@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
@@ -18,10 +18,10 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 public class PostOrderService {
 
-    private final InboxEventRepository inboxEventRepository;
+    private final InboxEventRepository inboxRepository;
 
     public long count() {
-        return inboxEventRepository.count();
+        return inboxRepository.count();
     }
 
     public void process(InboxEvent event) {
@@ -35,6 +35,27 @@ public class PostOrderService {
     @Scheduled(fixedDelay = 5000)
     @Transactional
     public void processInbox() {
-        // todo: implement retry for failed events from inbox
+        log.info("Processing inbox events with status FAILED");
+
+        inboxRepository.findByStatus(InboxEventStatus.FAILED)
+                .forEach(event -> {
+                    UUID eventId = UUID.fromString(event.getId().toString());
+                    log.info("\n\nProcessing Kafka message with key={}", eventId);
+
+                    try {
+                        // Process business logic
+                        process(event);
+
+                        event.setStatus(InboxEventStatus.PROCESSED);
+                        event.setProcessedAt(Instant.now());
+                        inboxRepository.save(event);
+                        log.info("\n\nSuccessfully processed event id={}", event.getId());
+                    } catch (Exception e) {
+                        log.error("\n\nError while processing event - {}", e.getMessage(), e);
+                        event.setStatus(InboxEventStatus.FAILED);
+                        inboxRepository.save(event);
+                        log.warn("\n\nEvent id={} marked as FAILED", event.getId());
+                    }
+                });
     }
 }

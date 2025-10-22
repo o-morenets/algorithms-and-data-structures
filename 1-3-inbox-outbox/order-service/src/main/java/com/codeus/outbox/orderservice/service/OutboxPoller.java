@@ -1,5 +1,6 @@
 package com.codeus.outbox.orderservice.service;
 
+import com.codeus.outbox.orderservice.entity.OutboxEventStatus;
 import com.codeus.outbox.orderservice.kafka.KafkaPublisher;
 import com.codeus.outbox.orderservice.repository.OutboxEventRepository;
 import jakarta.transaction.Transactional;
@@ -19,6 +20,7 @@ public class OutboxPoller {
     @Scheduled(fixedDelay = 5000)
     @Transactional
     public void processOutbox() {
-        //todo: implement sending Outbox events to kafka
+        outboxRepository.findAllByStatus(OutboxEventStatus.NEW)
+                .forEach(kafkaPublisher::publish);
     }
 }

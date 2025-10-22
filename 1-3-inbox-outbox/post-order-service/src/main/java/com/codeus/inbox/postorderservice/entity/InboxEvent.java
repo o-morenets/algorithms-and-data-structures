@@ -23,12 +23,23 @@ public class InboxEvent {
     @Column(unique = true, nullable = false)
     private UUID id;
 
-    //todo: add some fields which describe the event
+    // new fields which describe the event
+    private UUID aggregateId;
+    private String aggregateType;
+    private String eventType;
+
     // payload - JSON
+    @Column(nullable = false)
+    private String payload;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InboxEventStatus status;
 
     // other fields
+
+    @Column(nullable = false, updatable = false)
+    private Instant receivedAt;
+
+    private Instant processedAt;
 }

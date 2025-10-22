@@ -6,6 +6,7 @@ import com.codeus.outbox.orderservice.entity.OutboxEventStatus;
 import com.codeus.outbox.orderservice.kafka.KafkaPublisher;
 import com.codeus.outbox.orderservice.repository.OrderRepository;
 import com.codeus.outbox.orderservice.repository.OutboxEventRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +19,14 @@ import java.time.Instant;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final KafkaPublisher kafkaPublisher;
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
 
     public long count() {
         return orderRepository.count();
     }
 
-    //todo: make this logic atomic
+    @Transactional
     public Order create(String description) {
         Order order = new Order();
         order.setDescription(description);
@@ -32,8 +34,18 @@ public class OrderService {
         order.setCreatedAt(Instant.now());
         order = orderRepository.save(order);
 
-        // todo: need to replace with outbox logic
-        kafkaPublisher.publish(order);
+        OutboxEvent event = new OutboxEvent();
+        event.setEventType("order-created");
+        event.setAggregateId(order.getId());
+        event.setAggregateType("order");
+        event.setStatus(OutboxEventStatus.NEW);
+        event.setCreatedAt(Instant.now());
+        try {
+            event.setPayload(objectMapper.writeValueAsString(order));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        outboxEventRepository.save(event);
 
         return order;
     }

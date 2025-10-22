@@ -11,6 +11,10 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -22,12 +26,20 @@ public class OrderCreatedConsumer {
     @KafkaListener(topics = "order-created", groupId = "post-order-service")
     @Transactional
     public void handleOrderCreated(ConsumerRecord<String, String> record) {
-        //log.info("\n\nReceived Kafka message with key={} and value={}", eventId, record.value());
+        UUID eventId = UUID.fromString(record.key());
+        log.info("\n\nReceived Kafka message with key={} and value={}", eventId, record.value());
 
-        // todo: some verification logic
+        Optional<InboxEvent> processedEvent = inboxRepository.findById(eventId);
+        if (processedEvent.isPresent()) {
+            return;
+        }
 
         InboxEvent event = new InboxEvent();
-        // todo: populate InboxEvent
+        event.setId(eventId);
+        event.setEventType("order-created");
+        event.setPayload(record.value());
+        event.setReceivedAt(Instant.now());
+        event.setStatus(InboxEventStatus.RECEIVED);
 
         try {
             // Process business logic

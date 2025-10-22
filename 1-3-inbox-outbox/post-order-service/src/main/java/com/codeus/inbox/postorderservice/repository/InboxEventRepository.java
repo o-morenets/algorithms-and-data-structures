@@ -10,4 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface InboxEventRepository extends JpaRepository<InboxEvent, UUID> {
+    List<InboxEvent> findByStatus(InboxEventStatus status);
 }
