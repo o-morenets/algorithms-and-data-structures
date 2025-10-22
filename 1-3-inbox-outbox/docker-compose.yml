@@ -27,7 +27,7 @@ services:
       - post-order-service:/var/lib/postgresql/data
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:7.4.0  # Changed from 'latest'
     container_name: inbox-outbox-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -35,7 +35,7 @@ services:
       - outbox-inbox-network
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.4.0  # Changed from 'latest'
     container_name: inbox-outbox-kafka
     depends_on:
       - zookeeper
