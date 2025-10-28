@@ -1,5 +1,7 @@
 package org.codeus.bloomfilter;
 
+import java.util.stream.IntStream;
+
 /**
  * A simple Counting Bloom Filter implementation with configurable number of hash functions.
  *
@@ -7,11 +9,10 @@ package org.codeus.bloomfilter;
  */
 public class SimpleCountingBloomFilter<T> {
 
-    //TODO: declare a variable "counters" - an array of int.
-    //TODO: Declare a variable "size" of type int;
-    //TODO: Declare a variable "numHashes" of type int;
+    private int[] counters;
+    private int size;
+    private int numHashes;
 
-    //TODO: Implement constructor according to javadoc.
     /**
      * Constructs a CountingBloomFilter with the specified size and number of hash functions.
      *
@@ -19,18 +20,25 @@ public class SimpleCountingBloomFilter<T> {
      * @param numHashes the number of hash functions to use
      * @throws IllegalArgumentException if size or numHashes is not positive
      */
+    public SimpleCountingBloomFilter(int size, int numHashes) {
+        if (size <= 0 || numHashes <= 0) {
+            throw new IllegalArgumentException("Size and numHashes must be greater than zero");
+        }
+        this.size = size;
+        this.numHashes = numHashes;
+        this.counters = new int[size];
+    }
 
-    //TODO: implement method according to javadoc
     /**
      * Adds the specified item to the filter.
      *
      * @param item the item to add; may be {@code null}
      */
     public void add(T item) {
-        throw new UnsupportedOperationException();
+        IntStream.range(0, numHashes)
+                .forEach(i -> counters[hash(item, i, size)]++);
     }
 
-    //TODO: implement method according to javadoc
     /**
      * Checks whether the specified item might be present in the filter.
      *
@@ -38,10 +46,10 @@ public class SimpleCountingBloomFilter<T> {
      * @return {@code true} if the item might be present, {@code false} if definitely not present
      */
     public boolean mightContain(T item) {
-        throw new UnsupportedOperationException();
+        return IntStream.range(0, numHashes)
+                .allMatch(i -> counters[hash(item, i, size)] > 0);
     }
 
-    //TODO: implement method according to javadoc
     /**
      * Removes the specified item from the filter.
      * Note: Due to hash collisions, this may cause false negatives.
@@ -49,7 +57,8 @@ public class SimpleCountingBloomFilter<T> {
      * @param item the item to remove; may be {@code null}
      */
     public void remove(T item) {
-        throw new UnsupportedOperationException();
+        IntStream.range(0, numHashes)
+                .forEach(i -> counters[hash(item, i, size)]--);
     }
 
     /**

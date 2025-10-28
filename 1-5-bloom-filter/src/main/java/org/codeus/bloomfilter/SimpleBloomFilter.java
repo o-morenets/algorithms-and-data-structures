@@ -1,5 +1,7 @@
 package org.codeus.bloomfilter;
 
+import java.util.stream.IntStream;
+
 /**
  * A simple, generic Bloom filter implementation for probabilistic set membership testing.
  * <p>
@@ -24,11 +26,10 @@ package org.codeus.bloomfilter;
  */
 public class SimpleBloomFilter<T> {
 
-    //TODO: Declare a constant NUM_HASHES of type int and set a default equals 3;
-    //TODO: Declare an array of booleans with name "bits"
-    //TODO: Declare a variable size of type int;
+    private static final int NUM_HASHES = 3;
+    private boolean[] bits;
+    private int size;
 
-    //TODO: Implement constructor according to javadoc.
     /**
      * Constructs a new SimpleBloomFilter with the specified bit array size.
      * Initializes size variable with the provided value.
@@ -37,8 +38,14 @@ public class SimpleBloomFilter<T> {
      * @param size the number of bits in the Bloom filter's internal array; determines the filter's capacity and false positive rate
      * @throws IllegalArgumentException if size is less than or equal to zero
      */
+    public SimpleBloomFilter(int size) {
+        if (size <= 0) {
+            throw new IllegalArgumentException("Size must be greater than zero");
+        }
+        this.size = size;
+        this.bits = new boolean[size];
+    }
 
-    //TODO: implement method according to javadoc
     /**
      * Adds the specified item to the Bloom filter.
      * <p>
@@ -50,10 +57,10 @@ public class SimpleBloomFilter<T> {
      * @param item the item to add to the Bloom filter;
      */
     public void add(T item) {
-        throw new UnsupportedOperationException();
+        IntStream.range(0, NUM_HASHES)
+                .forEach(i -> bits[hash(item, i, size)] = true);
     }
 
-    //TODO: implement method according to javadoc
     /**
      * Checks whether the specified item might be present in the Bloom filter.
      * <p>
@@ -68,7 +75,8 @@ public class SimpleBloomFilter<T> {
      * @return {@code true} if the item might be present, {@code false} if the item is definitely not present
      */
     public boolean mightContain(T item) {
-        throw new UnsupportedOperationException();
+        return IntStream.range(0, NUM_HASHES)
+                .allMatch(i -> bits[hash(item, i, size)]);
     }
 
     private int hash(T item, int i, int size) {
