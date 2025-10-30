@@ -36,3 +36,6 @@ build/
 ### Project specific
 logs/
 .service_pids
+
+### macOS ###
+.DS_Store
