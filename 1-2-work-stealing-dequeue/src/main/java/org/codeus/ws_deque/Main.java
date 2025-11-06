@@ -4,7 +4,7 @@ import org.codeus.ws_deque.noworkstealingexample.NoWorkStealingArrSum;
 import org.codeus.ws_deque.wokrstealingexample.WorkStealingArrSum;
 
 public class Main {
-    private static final int ARRAY_SIZE = 1_000_000;
+    private static final int ARRAY_SIZE = 5_000;
 
     public static void main(String[] args) {
         // Uncomment this initial example if needed

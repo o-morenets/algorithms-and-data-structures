@@ -36,11 +36,6 @@ public class WorkStealingArrSum {
         @Override
         protected Long compute() {
             if (arrToSum.length == 1) {
-//                try {
-//                    Thread.sleep(1);
-//                } catch (InterruptedException e) {
-//                    throw new RuntimeException(e);
-//                }
                 return (long) arrToSum[0];
             }
 
