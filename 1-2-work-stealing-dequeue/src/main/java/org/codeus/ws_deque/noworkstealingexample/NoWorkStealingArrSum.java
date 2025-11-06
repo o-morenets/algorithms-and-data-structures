@@ -10,8 +10,8 @@ public class NoWorkStealingArrSum {
         long before = System.currentTimeMillis();
         Long sum = sumFunc.get();
         long after = System.currentTimeMillis();
-        int secondsTook = (int) (after - before) / 1000;
-        System.out.println("Seconds took: " + secondsTook);
+        int millisecondsTook = (int) (after - before);
+        System.out.println("Milliseconds took: " + millisecondsTook);
         return sum;
     }
 

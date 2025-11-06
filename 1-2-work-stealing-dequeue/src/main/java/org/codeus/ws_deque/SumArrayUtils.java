@@ -24,12 +24,12 @@ public class SumArrayUtils {
 
     // Used to simulate some computing operation (in this case to slow down summing a bit)
     public static long sumThrottle(long num1, long num2) {
-        int sleepMillis = 1;
-        try {
-            Thread.sleep(sleepMillis);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        int sleepMillis = 1;
+//        try {
+//            Thread.sleep(sleepMillis);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         return num1 + num2;
     }
 }
